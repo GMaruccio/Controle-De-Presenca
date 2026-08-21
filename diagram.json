@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "author": "Seu Nome",
+  "editor": "wokwi",
+  "parts": [
+    {
+      "type": "board-esp32-devkit-c-v4",
+      "id": "esp",
+      "top": 0,
+      "left": 0,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-membrane-keypad",
+      "id": "keypad",
+      "top": 20,
+      "left": 150,
+      "attrs": {}
+    }
+  ],
+  "connections": [
+    [ "esp:TX", "$serialMonitor:RX", "", [] ],
+    [ "esp:RX", "$serialMonitor:TX", "", [] ],
+    [ "esp:19", "keypad:R1", "green", [ "v0" ] ],
+    [ "esp:18", "keypad:R2", "green", [ "v0" ] ],
+    [ "esp:5",  "keypad:R3", "green", [ "v0" ] ],
+    [ "esp:17", "keypad:R4", "green", [ "v0" ] ],
+    [ "esp:16", "keypad:C1", "blue", [ "v0" ] ],
+    [ "esp:4",  "keypad:C2", "blue", [ "v0" ] ],
+    [ "esp:2",  "keypad:C3", "blue", [ "v0" ] ],
+    [ "esp:15", "keypad:C4", "blue", [ "v0" ] ]
+  ]
+}

@@ -1,0 +1,699 @@
+[
+    {
+        "id": "cb9036eb246fe66a",
+        "type": "tab",
+        "label": "Fluxo 1",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "b64ceb72c7b67a3a",
+        "type": "mysql",
+        "z": "cb9036eb246fe66a",
+        "mydb": "c9366ac03e66b4f4",
+        "name": "",
+        "x": 910,
+        "y": 1340,
+        "wires": [
+            [
+                "4f2ae16c81adc5b0"
+            ]
+        ]
+    },
+    {
+        "id": "d8fb22b34c0b714c",
+        "type": "http in",
+        "z": "cb9036eb246fe66a",
+        "name": "presenca",
+        "url": "/presenca",
+        "method": "post",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 340,
+        "y": 1260,
+        "wires": [
+            [
+                "ce4df7b159b905dd",
+                "0419961cac9f6d64"
+            ]
+        ]
+    },
+    {
+        "id": "ce4df7b159b905dd",
+        "type": "json",
+        "z": "cb9036eb246fe66a",
+        "name": "",
+        "property": "payload.ra",
+        "action": "",
+        "pretty": false,
+        "x": 470,
+        "y": 1320,
+        "wires": [
+            [
+                "c66ed1f3a67209b3"
+            ]
+        ]
+    },
+    {
+        "id": "c66ed1f3a67209b3",
+        "type": "function",
+        "z": "cb9036eb246fe66a",
+        "name": "validaRA",
+        "func": "if (!msg.payload || !msg.payload.ra) {\n    msg.statusCode = 400;\n    msg.payload = {\n        sucesso: false,\n        mensagem: \"RA não informado\"\n    };\n    return msg;\n}\n\nconst ra = String(msg.payload.ra).trim();\n\nif (!/^[0-9]+$/.test(ra)) {\n    msg.statusCode = 400;\n    msg.payload = {\n        sucesso: false,\n        mensagem: \"RA inválido\"\n    };\n    return msg;\n}\n\nmsg.ra = ra;\n\nmsg.topic = \"SELECT id, ra, nome FROM alunos WHERE ra = '\" + ra + \"' LIMIT 1\";\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 700,
+        "y": 1340,
+        "wires": [
+            [
+                "b64ceb72c7b67a3a"
+            ]
+        ]
+    },
+    {
+        "id": "4f2ae16c81adc5b0",
+        "type": "switch",
+        "z": "cb9036eb246fe66a",
+        "name": "",
+        "property": "payload.length",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "0",
+                "vt": "num"
+            },
+            {
+                "t": "gte",
+                "v": "1",
+                "vt": "num"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 1130,
+        "y": 1340,
+        "wires": [
+            [
+                "056aef4de2a1f987"
+            ],
+            [
+                "691c3668769b141a"
+            ]
+        ]
+    },
+    {
+        "id": "056aef4de2a1f987",
+        "type": "function",
+        "z": "cb9036eb246fe66a",
+        "name": "erro",
+        "func": "msg.statusCode = 404;\n\nmsg.payload = {\n    sucesso: false,\n    mensagem: \"Aluno não encontrado\"\n};\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1310,
+        "y": 1300,
+        "wires": [
+            [
+                "edb976d6147bf933"
+            ]
+        ]
+    },
+    {
+        "id": "edb976d6147bf933",
+        "type": "http response",
+        "z": "cb9036eb246fe66a",
+        "name": "",
+        "statusCode": "",
+        "headers": {},
+        "x": 1510,
+        "y": 1280,
+        "wires": []
+    },
+    {
+        "id": "691c3668769b141a",
+        "type": "function",
+        "z": "cb9036eb246fe66a",
+        "name": "sucesso",
+        "func": "const aluno = msg.payload[0];\n\nmsg.aluno = aluno;\n\nmsg.topic = `\n    INSERT INTO presencas (aluno_id)\n    VALUES (${aluno.id})\n`;\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1300,
+        "y": 1360,
+        "wires": [
+            [
+                "25fc80627e1d442f"
+            ]
+        ]
+    },
+    {
+        "id": "25fc80627e1d442f",
+        "type": "mysql",
+        "z": "cb9036eb246fe66a",
+        "mydb": "c9366ac03e66b4f4",
+        "name": "",
+        "x": 1490,
+        "y": 1360,
+        "wires": [
+            [
+                "a90de669f042c38a"
+            ]
+        ]
+    },
+    {
+        "id": "a90de669f042c38a",
+        "type": "function",
+        "z": "cb9036eb246fe66a",
+        "name": "function 1",
+        "func": "msg.statusCode = 200;\n\nmsg.payload = {\n    sucesso: true,\n    mensagem: \"Presença registrada\",\n    ra: msg.aluno.ra,\n    nome: msg.aluno.nome,\n    data_hora: new Date().toISOString()\n};\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1680,
+        "y": 1360,
+        "wires": [
+            [
+                "84827fd9c081dce3"
+            ]
+        ]
+    },
+    {
+        "id": "84827fd9c081dce3",
+        "type": "http response",
+        "z": "cb9036eb246fe66a",
+        "name": "",
+        "statusCode": "",
+        "headers": {},
+        "x": 1830,
+        "y": 1360,
+        "wires": []
+    },
+    {
+        "id": "0419961cac9f6d64",
+        "type": "debug",
+        "z": "cb9036eb246fe66a",
+        "name": "debug 1",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 460,
+        "y": 1180,
+        "wires": []
+    },
+    {
+        "id": "df918bab944a00d3",
+        "type": "ui-text",
+        "z": "cb9036eb246fe66a",
+        "group": "0bc3c76dc3b87f10",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "label": "Número de Alunos:",
+        "format": "{{msg.payload}}",
+        "layout": "row-spread",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#717171",
+        "wrapText": false,
+        "className": "",
+        "value": "payload",
+        "valueType": "msg",
+        "x": 1250,
+        "y": 1460,
+        "wires": []
+    },
+    {
+        "id": "4be5be5629a4e901",
+        "type": "mysql",
+        "z": "cb9036eb246fe66a",
+        "mydb": "c9366ac03e66b4f4",
+        "name": "",
+        "x": 1350,
+        "y": 1520,
+        "wires": [
+            [
+                "22281d8e2457e98a"
+            ]
+        ]
+    },
+    {
+        "id": "bb0932f41aab923b",
+        "type": "ui-text",
+        "z": "cb9036eb246fe66a",
+        "group": "0bc3c76dc3b87f10",
+        "order": 0,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "label": "Alunos Presentes Hoje:",
+        "format": "{{msg.payload}}",
+        "layout": "row-spread",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#717171",
+        "wrapText": false,
+        "className": "",
+        "value": "payload",
+        "valueType": "msg",
+        "x": 1750,
+        "y": 1520,
+        "wires": []
+    },
+    {
+        "id": "20bbdc685b051817",
+        "type": "ui-table",
+        "z": "cb9036eb246fe66a",
+        "group": "cdf81084f0b1210e",
+        "name": "",
+        "label": "",
+        "order": 0,
+        "width": 0,
+        "height": 0,
+        "maxrows": 0,
+        "passthru": false,
+        "autocols": true,
+        "showSearch": true,
+        "deselect": true,
+        "selectionType": "none",
+        "columns": [],
+        "mobileBreakpoint": "sm",
+        "mobileBreakpointType": "defaults",
+        "action": "append",
+        "className": "",
+        "x": 1330,
+        "y": 1620,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "023095a4905e3897",
+        "type": "inject",
+        "z": "cb9036eb246fe66a",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "5",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "str",
+        "x": 600,
+        "y": 1620,
+        "wires": [
+            [
+                "48487ce4f7a73469"
+            ]
+        ]
+    },
+    {
+        "id": "48487ce4f7a73469",
+        "type": "function",
+        "z": "cb9036eb246fe66a",
+        "name": "function 2",
+        "func": "msg.topic = \"SELECT a.ra, a.nome, TIME_FORMAT(p.data_hora, '%H:%i') AS hora, DATE_FORMAT(p.data_hora, '%d/%m/%Y') AS data FROM presencas p INNER JOIN alunos a ON a.id = p.aluno_id WHERE DATE(p.data_hora) = CURDATE() ORDER BY p.data_hora DESC\";\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 780,
+        "y": 1620,
+        "wires": [
+            [
+                "d891d2acd0f832e9"
+            ]
+        ]
+    },
+    {
+        "id": "22281d8e2457e98a",
+        "type": "function",
+        "z": "cb9036eb246fe66a",
+        "name": "function 3",
+        "func": "if (msg.payload && msg.payload.length > 0) {\n    msg.payload = msg.payload[0].total;\n} else {\n    msg.payload = 0;\n}\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1540,
+        "y": 1520,
+        "wires": [
+            [
+                "bb0932f41aab923b"
+            ]
+        ]
+    },
+    {
+        "id": "66843ce7dfa9b35e",
+        "type": "function",
+        "z": "cb9036eb246fe66a",
+        "name": "function 4",
+        "func": "msg.topic = `\n    SELECT COUNT(*) AS total\n    FROM presencas\n    WHERE DATE(data_hora) = CURDATE()\n`;\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1160,
+        "y": 1520,
+        "wires": [
+            [
+                "4be5be5629a4e901"
+            ]
+        ]
+    },
+    {
+        "id": "611bd2b44c0f0724",
+        "type": "inject",
+        "z": "cb9036eb246fe66a",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "5",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 960,
+        "y": 1520,
+        "wires": [
+            [
+                "66843ce7dfa9b35e"
+            ]
+        ]
+    },
+    {
+        "id": "d891d2acd0f832e9",
+        "type": "mysql",
+        "z": "cb9036eb246fe66a",
+        "mydb": "c9366ac03e66b4f4",
+        "name": "",
+        "x": 970,
+        "y": 1620,
+        "wires": [
+            [
+                "9ee04d24bc42edf1"
+            ]
+        ]
+    },
+    {
+        "id": "9ee04d24bc42edf1",
+        "type": "function",
+        "z": "cb9036eb246fe66a",
+        "name": "function 5",
+        "func": "// Guarda os dados retornados pelo MySQL\nconst dados = msg.payload;\n\n// Primeira mensagem: limpa a tabela\nconst limpar = {\n    payload: []\n};\n\n// Segunda mensagem: coloca os dados atuais\nconst atualizar = {\n    payload: dados\n};\n\n// Envia as duas mensagens pelo mesmo output,\n// na ordem: limpar → atualizar\nreturn [[limpar, atualizar]];",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1180,
+        "y": 1620,
+        "wires": [
+            [
+                "20bbdc685b051817"
+            ]
+        ]
+    },
+    {
+        "id": "372c8722b68df764",
+        "type": "function",
+        "z": "cb9036eb246fe66a",
+        "name": "function 6",
+        "func": "msg.topic = `\n    SELECT COUNT(*) AS total\n    FROM alunos\n`;\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 660,
+        "y": 1460,
+        "wires": [
+            [
+                "1f6c5b956ec1f00d"
+            ]
+        ]
+    },
+    {
+        "id": "1f6c5b956ec1f00d",
+        "type": "mysql",
+        "z": "cb9036eb246fe66a",
+        "mydb": "c9366ac03e66b4f4",
+        "name": "",
+        "x": 870,
+        "y": 1460,
+        "wires": [
+            [
+                "c4abedacfb5bf46f"
+            ]
+        ]
+    },
+    {
+        "id": "65c672dbab6ea216",
+        "type": "inject",
+        "z": "cb9036eb246fe66a",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "5",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 440,
+        "y": 1460,
+        "wires": [
+            [
+                "372c8722b68df764"
+            ]
+        ]
+    },
+    {
+        "id": "c4abedacfb5bf46f",
+        "type": "function",
+        "z": "cb9036eb246fe66a",
+        "name": "function 7",
+        "func": "if (msg.payload && msg.payload.length > 0) {\n    msg.payload = msg.payload[0].total;\n} else {\n    msg.payload = 0;\n}\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1060,
+        "y": 1460,
+        "wires": [
+            [
+                "df918bab944a00d3"
+            ]
+        ]
+    },
+    {
+        "id": "c9366ac03e66b4f4",
+        "type": "MySQLdatabase",
+        "name": "controle_presenca",
+        "host": "127.0.0.1",
+        "port": "3306",
+        "db": "controle_presenca",
+        "tz": "",
+        "charset": "UTF8"
+    },
+    {
+        "id": "0bc3c76dc3b87f10",
+        "type": "ui-group",
+        "name": "Controle de Presença",
+        "page": "cc5513c70cb26478",
+        "width": 6,
+        "height": 1,
+        "order": -1,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false",
+        "groupType": "default"
+    },
+    {
+        "id": "cdf81084f0b1210e",
+        "type": "ui-group",
+        "name": "Registros de Presença",
+        "page": "b96651ee4ab09c8a",
+        "width": 6,
+        "height": 1,
+        "order": -1,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false",
+        "groupType": "default"
+    },
+    {
+        "id": "cc5513c70cb26478",
+        "type": "ui-page",
+        "name": "Presenças",
+        "ui": "983b5d5e604c1c04",
+        "path": "/presenca",
+        "icon": "home",
+        "layout": "grid",
+        "theme": "da283a287ff296b5",
+        "breakpoints": [
+            {
+                "name": "Default",
+                "px": "0",
+                "cols": "3"
+            },
+            {
+                "name": "Tablet",
+                "px": "576",
+                "cols": "6"
+            },
+            {
+                "name": "Small Desktop",
+                "px": "768",
+                "cols": "9"
+            },
+            {
+                "name": "Desktop",
+                "px": "1024",
+                "cols": "12"
+            }
+        ],
+        "order": -1,
+        "className": "",
+        "visible": "true",
+        "disabled": "false"
+    },
+    {
+        "id": "b96651ee4ab09c8a",
+        "type": "ui-page",
+        "name": "Registros de Presença",
+        "ui": "983b5d5e604c1c04",
+        "path": "/page2",
+        "icon": "home",
+        "layout": "grid",
+        "theme": "da283a287ff296b5",
+        "breakpoints": [
+            {
+                "name": "Default",
+                "px": "0",
+                "cols": "3"
+            },
+            {
+                "name": "Tablet",
+                "px": "576",
+                "cols": "6"
+            },
+            {
+                "name": "Small Desktop",
+                "px": "768",
+                "cols": "9"
+            },
+            {
+                "name": "Desktop",
+                "px": "1024",
+                "cols": "12"
+            }
+        ],
+        "order": -1,
+        "className": "",
+        "visible": "true",
+        "disabled": "false"
+    },
+    {
+        "id": "983b5d5e604c1c04",
+        "type": "ui-base",
+        "name": "My Dashboard",
+        "path": "/dashboard",
+        "appIcon": "",
+        "includeClientData": true,
+        "acceptsClientConfig": [
+            "ui-notification",
+            "ui-control"
+        ],
+        "showPathInSidebar": false,
+        "headerContent": "page",
+        "navigationStyle": "default",
+        "titleBarStyle": "default",
+        "showReconnectNotification": true,
+        "notificationDisplayTime": 1,
+        "showDisconnectNotification": true,
+        "allowInstall": false
+    },
+    {
+        "id": "da283a287ff296b5",
+        "type": "ui-theme",
+        "name": "Default Theme",
+        "colors": {
+            "surface": "#ffffff",
+            "primary": "#0094ce",
+            "bgPage": "#eeeeee",
+            "groupBg": "#ffffff",
+            "groupOutline": "#cccccc"
+        },
+        "sizes": {
+            "density": "default",
+            "pagePadding": "12px",
+            "groupGap": "12px",
+            "groupBorderRadius": "4px",
+            "widgetGap": "12px"
+        }
+    },
+    {
+        "id": "ae03779cee178070",
+        "type": "global-config",
+        "env": [],
+        "modules": {
+            "node-red-node-mysql": "3.0.3",
+            "@flowfuse/node-red-dashboard": "1.30.2"
+        }
+    }
+]
