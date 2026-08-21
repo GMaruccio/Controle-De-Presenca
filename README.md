@@ -10,8 +10,9 @@ Sistema de automação para controle de presença em sala de aula desenvolvido c
 * **Métricas da Turma:** 
   * Total de alunos presentes.
   * Total de alunos ausentes.
+  * Total de alunos matriculados.
 * **Lista Dinâmica:** Exibição detalhada de todos os alunos que registraram presença.
-* **Simulação Integrada:** Possibilidade de testar o circuito virtualmente via Wokwi antes de gravar no hardware físico.
+* **Simulação Integrada:** Possibilidade de testar o circuito virtualmente via Wokwi.
 * **Arquitetura Multiplataforma:** Integração fluida entre hardware embarcado e interface web/dashboard.
 
 ---
@@ -25,12 +26,3 @@ Sistema de automação para controle de presença em sala de aula desenvolvido c
 
 ---
 
-## 📂 Estrutura do Projeto
-
-```text
-├── firmware/              # Código-fonte para o ESP32 (PlatformIO)
-│   ├── src/               # Lógica principal (main.cpp)
-│   └── platformio.ini     # Configurações de dependências e placa
-├── wokwi/                 # Arquivos de simulação (diagram.json, wokwi.toml)
-├── node-red/              # Fluxos exportados do Node-RED (flows.json)
-└── README.md
