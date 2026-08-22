@@ -8,7 +8,7 @@ const char* ssid = "Wokwi-GUEST";
 const char* password = "";
 
 // IMPORTANTE: Coloque o IPv4 da sua máquina e a rota do seu Node-RED
-const char* serverName = "http://192.168.102.23:1880/presenca"; 
+const char* serverName = "http://192.168.15.14:1880/presenca"; 
 
 // --- Configuração do Teclado Matricial 4x4 ---
 const byte ROWS = 4; // 4 linhas

@@ -1,5 +1,234 @@
 [
     {
+        "id": "b64ceb72c7b67a3a",
+        "type": "mysql",
+        "z": "cb9036eb246fe66a",
+        "mydb": "c9366ac03e66b4f4",
+        "name": "",
+        "x": 910,
+        "y": 1340,
+        "wires": [
+            [
+                "4f2ae16c81adc5b0"
+            ]
+        ]
+    },
+    {
+        "id": "d8fb22b34c0b714c",
+        "type": "http in",
+        "z": "cb9036eb246fe66a",
+        "name": "presenca",
+        "url": "/presenca",
+        "method": "post",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 340,
+        "y": 1260,
+        "wires": [
+            [
+                "ce4df7b159b905dd",
+                "0419961cac9f6d64"
+            ]
+        ]
+    },
+    {
+        "id": "ce4df7b159b905dd",
+        "type": "json",
+        "z": "cb9036eb246fe66a",
+        "name": "",
+        "property": "payload.ra",
+        "action": "",
+        "pretty": false,
+        "x": 470,
+        "y": 1320,
+        "wires": [
+            [
+                "c66ed1f3a67209b3"
+            ]
+        ]
+    },
+    {
+        "id": "c66ed1f3a67209b3",
+        "type": "function",
+        "z": "cb9036eb246fe66a",
+        "name": "validaRA",
+        "func": "if (!msg.payload || !msg.payload.ra) {\n    msg.statusCode = 400;\n    msg.payload = {\n        sucesso: false,\n        mensagem: \"RA não informado\"\n    };\n    return msg;\n}\n\nconst ra = String(msg.payload.ra).trim();\n\nif (!/^[0-9]+$/.test(ra)) {\n    msg.statusCode = 400;\n    msg.payload = {\n        sucesso: false,\n        mensagem: \"RA inválido\"\n    };\n    return msg;\n}\n\nmsg.ra = ra;\n\nmsg.topic = \"SELECT id, ra, nome FROM alunos WHERE ra = '\" + ra + \"' LIMIT 1\";\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 700,
+        "y": 1340,
+        "wires": [
+            [
+                "b64ceb72c7b67a3a"
+            ]
+        ]
+    },
+    {
+        "id": "4f2ae16c81adc5b0",
+        "type": "switch",
+        "z": "cb9036eb246fe66a",
+        "name": "",
+        "property": "payload.length",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "0",
+                "vt": "num"
+            },
+            {
+                "t": "gte",
+                "v": "1",
+                "vt": "num"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 1130,
+        "y": 1340,
+        "wires": [
+            [
+                "056aef4de2a1f987"
+            ],
+            [
+                "691c3668769b141a"
+            ]
+        ]
+    },
+    {
+        "id": "056aef4de2a1f987",
+        "type": "function",
+        "z": "cb9036eb246fe66a",
+        "name": "erro",
+        "func": "msg.statusCode = 404;\n\nmsg.payload = {\n    sucesso: false,\n    mensagem: \"Aluno não encontrado\"\n};\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1310,
+        "y": 1300,
+        "wires": [
+            [
+                "edb976d6147bf933"
+            ]
+        ]
+    },
+    {
+        "id": "edb976d6147bf933",
+        "type": "http response",
+        "z": "cb9036eb246fe66a",
+        "name": "",
+        "statusCode": "",
+        "headers": {},
+        "x": 1510,
+        "y": 1280,
+        "wires": []
+    },
+    {
+        "id": "691c3668769b141a",
+        "type": "function",
+        "z": "cb9036eb246fe66a",
+        "name": "sucesso",
+        "func": "const aluno = msg.payload[0];\n\nmsg.aluno = aluno;\n\nmsg.topic = `\n    INSERT INTO presencas (aluno_id)\n    VALUES (${aluno.id})\n`;\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1300,
+        "y": 1360,
+        "wires": [
+            [
+                "25fc80627e1d442f"
+            ]
+        ]
+    },
+    {
+        "id": "25fc80627e1d442f",
+        "type": "mysql",
+        "z": "cb9036eb246fe66a",
+        "mydb": "c9366ac03e66b4f4",
+        "name": "",
+        "x": 1490,
+        "y": 1360,
+        "wires": [
+            [
+                "a90de669f042c38a"
+            ]
+        ]
+    },
+    {
+        "id": "a90de669f042c38a",
+        "type": "function",
+        "z": "cb9036eb246fe66a",
+        "name": "function 1",
+        "func": "msg.statusCode = 200;\n\nmsg.payload = {\n    sucesso: true,\n    mensagem: \"Presença registrada\",\n    ra: msg.aluno.ra,\n    nome: msg.aluno.nome,\n    data_hora: new Date().toISOString()\n};\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1680,
+        "y": 1360,
+        "wires": [
+            [
+                "84827fd9c081dce3"
+            ]
+        ]
+    },
+    {
+        "id": "84827fd9c081dce3",
+        "type": "http response",
+        "z": "cb9036eb246fe66a",
+        "name": "",
+        "statusCode": "",
+        "headers": {},
+        "x": 1830,
+        "y": 1360,
+        "wires": []
+    },
+    {
+        "id": "0419961cac9f6d64",
+        "type": "debug",
+        "z": "cb9036eb246fe66a",
+        "name": "debug 1",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 460,
+        "y": 1180,
+        "wires": []
+    },
+    {
+        "id": "dd6c700ba601f697",
+        "type": "mysql",
+        "z": "cb9036eb246fe66a",
+        "mydb": "c9366ac03e66b4f4",
+        "name": "",
+        "x": 870,
+        "y": 1720,
+        "wires": [
+            [
+                "93e3246f62efb077"
+            ]
+        ]
+    },
+    {
         "id": "9a84a5c86b52a6ad",
         "type": "ui-template",
         "z": "cb9036eb246fe66a",
@@ -17,11 +246,90 @@
         "resendOnRefresh": true,
         "templateScope": "widget:page",
         "className": "",
-        "x": 1060,
-        "y": 1520,
+        "x": 1260,
+        "y": 1720,
         "wires": [
             []
         ]
+    },
+    {
+        "id": "a8e04f4ed24f643c",
+        "type": "function",
+        "z": "cb9036eb246fe66a",
+        "name": "function 2",
+        "func": "msg.topic = `\n    SELECT \n        a.ra, \n        a.nome, \n        MAX(p.data_hora) as ultima_hora_registro,\n        (SELECT COUNT(id) FROM alunos) as total_matriculados\n    FROM presencas p\n    JOIN alunos a ON p.aluno_id = a.id\n    WHERE DATE(p.data_hora) = CURRENT_DATE\n    GROUP BY a.ra, a.nome\n    ORDER BY ultima_hora_registro DESC;\n`;\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 660,
+        "y": 1720,
+        "wires": [
+            [
+                "dd6c700ba601f697"
+            ]
+        ]
+    },
+    {
+        "id": "93e3246f62efb077",
+        "type": "function",
+        "z": "cb9036eb246fe66a",
+        "name": "function 3",
+        "func": "let registros = msg.payload || [];\n\nif (registros.length === 0) {\n    msg.payload = {\n        total_alunos: 0, \n        presentes: 0,\n        ausentes: 0,\n        ultimo_registro: \"--:--\",\n        taxa_presenca: 0,\n        alunos_presentes: []\n    };\n    return msg;\n}\n\nconst totalMatriculados = registros[0].total_matriculados;\n\nfunction formatarHora(dataString) {\n    if (!dataString) return \"--:--\";\n    let data = new Date(dataString); \n    \n    if (isNaN(data.getTime())) return \"--:--\"; \n    \n    let horas = data.getHours().toString().padStart(2, '0');\n    let minutos = data.getMinutes().toString().padStart(2, '0');\n    return `${horas}:${minutos}`;\n}\n\nlet alunosPresentes = registros.map(registro => {\n    return {\n        ra: registro.ra,\n        nome: registro.nome,\n        hora: formatarHora(registro.ultima_hora_registro)\n    };\n});\n\nlet presentes = alunosPresentes.length;\nlet ausentes = totalMatriculados - presentes;\nif (ausentes < 0) ausentes = 0;\n\nlet taxa = totalMatriculados > 0 ? Math.round((presentes / totalMatriculados) * 100) : 0;\n\nlet ultimoRegistro = alunosPresentes.length > 0 ? alunosPresentes[0].hora : \"--:--\";\n\nmsg.payload = {\n    total_alunos: totalMatriculados,\n    presentes: presentes,\n    ausentes: ausentes,\n    ultimo_registro: ultimoRegistro,\n    taxa_presenca: taxa,\n    alunos_presentes: alunosPresentes\n};\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1080,
+        "y": 1720,
+        "wires": [
+            [
+                "9a84a5c86b52a6ad"
+            ]
+        ]
+    },
+    {
+        "id": "751456a0f8cf6d43",
+        "type": "inject",
+        "z": "cb9036eb246fe66a",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "5",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 440,
+        "y": 1720,
+        "wires": [
+            [
+                "a8e04f4ed24f643c"
+            ]
+        ]
+    },
+    {
+        "id": "c9366ac03e66b4f4",
+        "type": "MySQLdatabase",
+        "name": "controle_presenca",
+        "host": "127.0.0.1",
+        "port": "3306",
+        "db": "controle_presenca",
+        "tz": "",
+        "charset": "UTF8"
     },
     {
         "id": "73eaba8408327290",
@@ -71,7 +379,7 @@
             "ui-control"
         ],
         "showPathInSidebar": false,
-        "headerContent": "dashboard",
+        "headerContent": "page",
         "navigationStyle": "default",
         "titleBarStyle": "default",
         "showReconnectNotification": true,
@@ -99,10 +407,11 @@
         }
     },
     {
-        "id": "f43eb13e594d2e06",
+        "id": "0ad594670a14cdc8",
         "type": "global-config",
         "env": [],
         "modules": {
+            "node-red-node-mysql": "3.0.3",
             "@flowfuse/node-red-dashboard": "1.30.2"
         }
     }
