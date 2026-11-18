@@ -1,6 +1,6 @@
-# 🏫 Controle de Presença — ESP32 + Node-RED + MariaDB
+# 🏫 Controle de Presença — ESP32 + Node-RED + MySQL
 
-Sistema de controle de presença em sala de aula. O aluno digita o seu **RA** em um teclado matricial conectado a um **ESP32**; o equipamento envia o RA por HTTP a um fluxo **Node-RED**, que valida o aluno no **MariaDB/MySQL**, registra a presença e alimenta um **dashboard em tempo real**.
+Sistema de controle de presença em sala de aula. O aluno digita o seu **RA** em um teclado matricial conectado a um **ESP32**; o equipamento envia o RA por HTTP a um fluxo **Node-RED**, que valida o aluno no **MySQL**, registra a presença e alimenta um **dashboard em tempo real**.
 
 O firmware pode ser executado em um ESP32 físico ou simulado no **Wokwi**.
 
@@ -99,7 +99,7 @@ O painel é atualizado automaticamente a cada 5 segundos.
 | RNF03 | Portabilidade | O firmware deve funcionar em ESP32 real e no simulador Wokwi. | ✅ Atendido |
 | RNF04 | Interoperabilidade | A comunicação deve usar HTTP e JSON. | ✅ Atendido |
 | RNF05 | Manutenibilidade | Código-fonte, circuito e fluxo devem ficar versionados no repositório. | ✅ Atendido |
-| RNF06 | Compatibilidade | O banco deve ser MySQL/MariaDB com `utf8mb4`. | ✅ Atendido |
+| RNF06 | Compatibilidade | O banco deve ser MySQL com `utf8mb4`. | ✅ Atendido |
 | RNF07 | Segurança | A entrada do usuário deve ser validada antes de compor consultas SQL. | ⚠️ Parcial (validação numérica por regex; sem consultas parametrizadas) |
 | RNF08 | Segurança | A API e o dashboard devem exigir autenticação e HTTPS. | ❌ Não implementado |
 | RNF09 | Confiabilidade | O firmware deve tratar falha de Wi-Fi e erro HTTP. | ⚠️ Parcial (informa o erro, mas não reenvia nem reconecta) |
@@ -119,13 +119,13 @@ O painel é atualizado automaticamente a cada 5 segundos.
 | Backend | [Node-RED](https://nodered.org/) | API HTTP e regras de negócio |
 | Backend | `node-red-node-mysql` 3.0.3 | Acesso ao banco |
 | Frontend | `@flowfuse/node-red-dashboard` 1.30.2 (Dashboard 2.0, Vue) | Painel web |
-| Dados | MariaDB 10.4+ / MySQL | Persistência (`alunos`, `presencas`) |
+| Dados | MySQL | Persistência (`alunos`, `presencas`) |
 
 ---
 
 ## 🏗️ 4. Arquitetura
 
-A aplicação tem três blocos: **dispositivo** (ESP32), **backend/frontend** (Node-RED) e **dados** (MariaDB).
+A aplicação tem três blocos: **dispositivo** (ESP32), **backend/frontend** (Node-RED) e **dados** (MySQL).
 
 ```mermaid
 flowchart LR
@@ -135,7 +135,7 @@ flowchart LR
     subgraph Servidor
         N[Node-RED<br/>POST /presenca]
         D[Dashboard 2.0<br/>/dashboard/presenca]
-        N -. gravação .-> DB[(MariaDB<br/>controle_presenca)]
+        N -. gravação .-> DB[(MySQL<br/>controle_presenca)]
         DB -. leitura a cada 5 s .-> D
     end
     E -- "HTTP POST JSON {ra}" --> N
@@ -150,7 +150,7 @@ sequenceDiagram
     participant A as Aluno
     participant E as ESP32
     participant N as Node-RED
-    participant B as MariaDB
+    participant B as MySQL
     A->>E: Digita o RA e pressiona #
     E->>N: POST /presenca {"ra":"123456789"}
     N->>N: validaRA (apenas dígitos)
@@ -215,7 +215,7 @@ Controle-De-Presenca/
 |---|---|
 | [Node.js](https://nodejs.org/) | LTS 18 ou superior (necessário para o Node-RED) |
 | [Node-RED](https://nodered.org/docs/getting-started/) | Versão atual |
-| MariaDB ou MySQL | MariaDB 10.4+ (o dump foi gerado na 10.4.32) |
+| MySQL | Versão 8.x ou compatível (o dump é SQL padrão e também funciona em MariaDB) |
 | [VS Code](https://code.visualstudio.com/) + extensão [PlatformIO IDE](https://platformio.org/install/ide?install=vscode) | Para compilar o firmware |
 | Extensão [Wokwi para VS Code](https://docs.wokwi.com/vscode/getting-started) | Para simular (exige licença Wokwi; há opção gratuita) |
 | ESP32 DevKit + teclado 4x4 | Opcional, apenas para uso em hardware real |
@@ -302,7 +302,7 @@ Em ESP32 físico, use o SSID e a senha da sua rede; o computador e o ESP32 devem
 
 ### 8.1 Subir o backend
 
-1. Inicie o MariaDB/MySQL.
+1. Inicie o servidor MySQL.
 2. Inicie o Node-RED (`node-red`) e confirme que o fluxo está implantado (Deploy).
 3. Acesse o dashboard: **`http://localhost:1880/dashboard/presenca`**.
 
@@ -387,7 +387,7 @@ curl -X POST http://localhost:1880/presenca \
 
 ## 🗄️ 10. Banco de dados
 
-- **SGBD:** MariaDB 10.4+ / MySQL
+- **SGBD:** MySQL
 - **Banco:** `controle_presenca`
 - **Charset:** `utf8mb4`
 - **Conexão:** `127.0.0.1:3306` (definida no nó de configuração `MySQLdatabase` do Node-RED)
@@ -503,7 +503,7 @@ Não há pipeline de CI/CD nem contêineres neste repositório. O procedimento a
 
 ### 13.1 Servidor (Node-RED + banco)
 
-1. Provisione uma máquina (ou VM) com Node.js LTS, Node-RED e MariaDB.
+1. Provisione uma máquina (ou VM) com Node.js LTS, Node-RED e MySQL.
 2. Crie o banco, o usuário dedicado e as tabelas (seção 7.2).
 3. Importe o `flows.json`, configure as credenciais do MySQL e faça o Deploy.
 4. Execute o Node-RED como serviço, por exemplo com PM2:
